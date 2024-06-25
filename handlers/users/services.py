@@ -113,21 +113,19 @@ async def get_text(message: Message, state: FSMContext):
 @router.message(F.content_type.in_({"photo"}), Data.photo)
 async def get_photos(message: Message, state: FSMContext, album: List[Message] = None):
     file_ids = [message.photo[-1].file_id]
+
     if album:
-        file_ids.clear()
-        for obj in album:
-            if obj.photo:
-                file_ids.append(obj.photo[-1].file_id)
-            else:
-                file_ids.append(obj[obj.content_type].file_id)
+        file_ids = [obj.photo[-1].file_id for obj in album if obj.photo]
+
     data = await state.get_data()
-    if "photos" in data.keys():
-        new_data = data
-        for i in file_ids:
-            new_data['photos'].append(i)
-        await state.set_data(new_data)
+    if "photos" in data:
+        data["photos"].extend(file_ids)
     else:
-        await state.update_data({'photos': [item for item in file_ids]})
+        data["photos"] = file_ids
+
+    await state.set_data(data)
+
+    # if album:  # Only send a response if it's the last message in the album
     photos = await state.get_data()
     await message.answer(f"{len(photos['photos'])} фото получен.")
 

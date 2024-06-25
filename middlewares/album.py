@@ -1,35 +1,50 @@
 import asyncio
-from typing import Callable, Any, Awaitable, Union
+from typing import Callable, Any, Awaitable, Union, Dict, List
 
 from aiogram import BaseMiddleware
 from aiogram.types import Message
 
 
 class AlbumMiddleware(BaseMiddleware):
-    album_data: dict = {}
+    album_data: Dict[str, List[Message]] = {}
+    timers: Dict[str, asyncio.TimerHandle] = {}
 
-    def __init__(self, latency: Union[int, float] = 0.01):
+    def __init__(self, latency: Union[int, float] = 0.5):
         self.latency = latency
 
     async def __call__(
-            self,
-            handler: Callable[[Message, dict[str, Any]], Awaitable[Any]],
-            message: Message,
-            data: dict[str, Any]
+        self,
+        handler: Callable[[Message, Dict[str, Any]], Awaitable[Any]],
+        message: Message,
+        data: Dict[str, Any]
     ) -> Any:
-        if not message.media_group_id:
+        if not message.media_group_id or not message.photo:
             await handler(message, data)
             return
-        try:
-            self.album_data[message.media_group_id].append(message)
-        except KeyError:
-            self.album_data[message.media_group_id] = [message]
-            await asyncio.sleep(self.latency)
 
-            data['_is_last'] = True
-            data["album"] = self.album_data[message.media_group_id]
-            await handler(message, data)
+        media_group_id = message.media_group_id
 
-        if message.media_group_id and data.get("_is_last"):
-            del self.album_data[message.media_group_id]
-            del data['_is_last']
+        if media_group_id not in self.album_data:
+            self.album_data[media_group_id] = []
+
+        self.album_data[media_group_id].append(message)
+
+        if media_group_id in self.timers:
+            self.timers[media_group_id].cancel()
+
+        self.timers[media_group_id] = asyncio.get_event_loop().call_later(
+            self.latency,
+            lambda: asyncio.create_task(self.process_album(media_group_id, handler, data))
+        )
+
+    async def process_album(
+        self,
+        media_group_id: str,
+        handler: Callable[[Message, Dict[str, Any]], Awaitable[Any]],
+        data: Dict[str, Any]
+    ):
+        album = self.album_data.pop(media_group_id, [])
+        if album:
+            data['album'] = album
+            await handler(album[-1], data)
+        self.timers.pop(media_group_id, None)
