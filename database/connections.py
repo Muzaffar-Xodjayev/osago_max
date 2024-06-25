@@ -193,8 +193,8 @@ async def add_user_invoice(user_id: int, bill_id: str):
 async def get_user_invoice(bill_id: str):
     with db:
         invoice = Payments.select().where(Payments.bill_id == bill_id)
-        invoice = [model_to_dict(item) for item in invoice][0]
-        return invoice
+        invoice = [model_to_dict(item) for item in invoice]
+        return invoice[0] if invoice else []
 
 
 async def delete_user_invoice(user_id: int):

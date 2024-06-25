@@ -37,7 +37,7 @@ async def create_user_invoice(amount):
 
 async def check_user_invoice(request_data):
     context = f'✅ Ваш баланс пополнен на сумму: {request_data["amount"]}₽'
-    user = await get_user_invoice(request_data['order_id'])
+    user = (await get_user_invoice(request_data['order_id']))['user_id']
     await update_user_balance(user['user_id'], float(request_data["amount"]), incriment=True)
     await delete_user_invoice(user['user_id'])
     await bot.send_message(chat_id=user['user_id'], text=context)

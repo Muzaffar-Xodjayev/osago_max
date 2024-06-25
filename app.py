@@ -13,6 +13,8 @@ from fastapi import FastAPI
 from fastapi.requests import Request
 import uvicorn
 from contextlib import asynccontextmanager
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.httpsredirect import HTTPSRedirectMiddleware
 
 
 async def on_startup():
@@ -36,6 +38,16 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+# Add HTTPS redirect middleware
+app.add_middleware(HTTPSRedirectMiddleware)
+
 
 @app.post(config.WEBHOOK_PATH)
 async def webhook(request: Request) -> None:
@@ -43,11 +55,14 @@ async def webhook(request: Request) -> None:
     await dp.feed_update(bot, update)
 
 
-@app.post("/payments")
-async def payments_webhook(request_data: PaymentNotify) -> None:
+@app.post("/payments/")
+async def payments_webhook(request_data: PaymentNotify):
+# async def payments_webhook(request_data):
+    print("payment path")
+    print(request_data)
+    print(request_data.dict())
     if request_data:
         await check_user_invoice(request_data.dict())
-    logging.info(request_data.dict())
 
 
 if __name__ == '__main__':
