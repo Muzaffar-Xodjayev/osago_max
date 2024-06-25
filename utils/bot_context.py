@@ -208,3 +208,5 @@ snyatie_ts_s_ucheta_product_photo_text = "Отправьте фото:\n" \
                                          f'<b>❗️ Можно отправить несколько фото</b>'
 
 add_admin_text = "Отправьте мне, user_id + full_name + username<i>(Если это так)</i>"
+add_channel_text = ("Отправьте мне, channel_id + channel_name + channel_url\n"
+                    "<i>⁉️ Помните, что бот должен быть администратором данного канала</i>")

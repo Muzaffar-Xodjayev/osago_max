@@ -10,6 +10,7 @@ routers_list = [
     users.profile.router,
     users.contact.router,
     admins.start.router,
+    admins.manage_channels.router,
     admins.manage_admin.router,
     admins.other_funcs.router,
 ]

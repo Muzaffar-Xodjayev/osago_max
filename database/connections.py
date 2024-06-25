@@ -77,6 +77,17 @@ async def get_all_channels():
         return channels
 
 
+async def add_channel(channel_id: int, channel_name: str, channel_url: str):
+    with db:
+        channel = Channels.create(channel_id=channel_id, channel_name=channel_name, channel_url=channel_url)
+        return model_to_dict(channel)
+
+
+async def delete_channel(channel_id: int):
+    with db:
+        Channels.delete().where(Channels.channel_id == channel_id).execute()
+
+
 async def get_all_admins():
     with db:
         admins = Admins.select()

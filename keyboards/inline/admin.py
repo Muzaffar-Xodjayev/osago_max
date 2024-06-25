@@ -1,7 +1,7 @@
 from aiogram.types import InlineKeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
-from database.connections import admin_get_all_products, get_all_admins, get_bot_configs
+from database.connections import admin_get_all_products, get_all_admins, get_bot_configs, get_all_channels
 
 
 async def admin_menu_btn():
@@ -9,7 +9,8 @@ async def admin_menu_btn():
     keyboard.add(
         InlineKeyboardButton(text='💵 Изменить цены', callback_data='admin:change_prices'),
         InlineKeyboardButton(text='📮 Рассылка юзерам', callback_data='admin:sending_msg'),
-        InlineKeyboardButton(text='👥 Список админов', callback_data='admin:all_admins')
+        InlineKeyboardButton(text='👥 Список админов', callback_data='admin:all_admins'),
+        InlineKeyboardButton(text='📢 Каналы', callback_data='admin:channels'),
     )
     keyboard.adjust(2)
     return keyboard.as_markup()
@@ -71,3 +72,27 @@ async def admin_edit_products_btn():
     )
     products.adjust(1)
     return products.as_markup()
+
+
+async def get_all_channels_btn(just_show: bool = False, manage_channel: bool = False, with_callback: bool = False):
+    channels = await get_all_channels()
+    keyboard = InlineKeyboardBuilder()
+    if just_show:
+        keyboard.add(
+            *[InlineKeyboardButton(text=f"{item['channel_name']}", url=f"{item['channel_url']}") for item in channels]
+        )
+    if with_callback:
+        keyboard.add(
+            *[InlineKeyboardButton(text=f"{item['channel_name']}", callback_data=f"channel_manage:{item['channel_id']}") for item in channels]
+        )
+    keyboard.adjust(1)
+    if manage_channel:
+        keyboard.row(
+            InlineKeyboardButton(text='➕ Добавить', callback_data='channel_manage:plus'),
+            InlineKeyboardButton(text='➖ Удалить', callback_data='channel_manage:minus'),
+        )
+    keyboard.row(
+        InlineKeyboardButton(text="🔙 Назад", callback_data="admin_manage:back")
+    )
+    return keyboard.as_markup()
+

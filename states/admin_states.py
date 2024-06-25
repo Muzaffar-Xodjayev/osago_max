@@ -5,3 +5,4 @@ class Admin(StatesGroup):
     send_msg = State()
     change_product_price = State()
     change_bot_config = State()
+    add_channel_state = State()

@@ -82,4 +82,10 @@ async def check_subscribed(call: CallbackQuery):
     else:
         await call.answer("Благодарим вас за подписку на все необходимые каналы!")
         await call.message.delete()
-        await call.message.answer(start_text)
+        check = await check_user(user_id)
+        if not check:
+            btn = await from_link_btn()
+            await call.message.answer(f"<b>Откуда вы узнали про нас?</b>", reply_markup=btn)
+        else:
+            btn = await start_menu_btn()
+            await call.message.answer(start_text, reply_markup=btn)
